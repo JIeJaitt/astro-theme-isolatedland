@@ -1,7 +1,31 @@
 ---
-const AVATAR_URL = "/avatar.jpg";
-const AUTHOR_NAME = "Sukka";
-const AUTHOR_BIO = "愿话凡是在真实却从不轻易";
+import { themeConfig, defaultThemeConfig } from '../../config/theme';
+
+// 合并默认配置和用户配置
+const config = {
+  ...defaultThemeConfig,
+  ...themeConfig,
+  author: {
+    ...defaultThemeConfig.author,
+    ...themeConfig.author
+  }
+};
+
+// 获取头像 URL
+function getAvatarUrl() {
+  // 如果用户配置了头像，使用用户配置的
+  if (config.author.avatar) {
+    return config.author.avatar;
+  }
+  
+  // 否则使用 DiceBear 生成随机头像
+  const seed = config.author.name; // 使用作者名字作为种子以保持一致性
+  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
+}
+
+const AVATAR_URL = getAvatarUrl();
+const AUTHOR_NAME = config.author.name;
+const AUTHOR_BIO = config.author.bio;
 
 const stats = [
   { label: "文章", value: "106" },
@@ -34,25 +58,29 @@ const isChristmasSeason = new Date().getMonth() === 11;
       <p class="author-bio">{AUTHOR_BIO}</p>
     </div>
     
-    <div class="stats-section">
-      {stats.map(stat => (
-        <div class="stat-box">
-          <div class="stat-value">{stat.value}</div>
-          <div class="stat-label">{stat.label}</div>
-        </div>
-      ))}
-    </div>
+    {config.sidebar?.stats && (
+      <div class="stats-section">
+        {stats.map(stat => (
+          <div class="stat-box">
+            <div class="stat-value">{stat.value}</div>
+            <div class="stat-label">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+    )}
   </div>
 
-  <div class="categories-box">
-    <h3 class="box-title">分类</h3>
-    {categories.map(category => (
-      <a href={`/category/${category.name}`} class="category-item">
-        <span class="category-name">{category.name}</span>
-        <span class="category-count">{category.count}</span>
-      </a>
-    ))}
-  </div>
+  {config.sidebar?.categories && (
+    <div class="categories-box">
+      <h3 class="box-title">分类</h3>
+      {categories.map(category => (
+        <a href={`/category/${category.name}`} class="category-item">
+          <span class="category-name">{category.name}</span>
+          <span class="category-count">{category.count}</span>
+        </a>
+      ))}
+    </div>
+  )}
 </aside>
 
 <style>
@@ -86,12 +114,13 @@ const isChristmasSeason = new Date().getMonth() === 11;
   }
 
   .avatar {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
-    border: 4px solid white;
+    background: #f5f5f5;
+    padding: 4px;
+    border: 2px solid #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    object-fit: cover;
   }
 
   .christmas-hat {

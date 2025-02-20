@@ -58,8 +58,8 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 
 	.layout-content {
 		display: grid;
-		grid-template-columns: 240px minmax(0, 1fr) 300px;
-		gap: 20px;
+		grid-template-columns: 240px minmax(0, 1fr) 280px;
+		gap: 16px;
 		align-items: start;
 		min-height: calc(100vh - 200px);
 	}
@@ -68,6 +68,9 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 	.right-sidebar,
 	.main-content {
 		margin-top: 0;
+		background: white;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 	}
 
 	.left-sidebar {
@@ -79,6 +82,8 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 	.main-content {
 		min-width: 0;
 		width: 100%;
+		padding: 0;
+		overflow: hidden;
 	}
 
 	.right-sidebar {
