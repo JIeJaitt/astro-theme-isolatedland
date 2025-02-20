@@ -1,5 +1,9 @@
 ---
 import { themeConfig, defaultThemeConfig } from '../../config/theme';
+import { getCollection } from 'astro:content';
+
+// 获取所有博客文章
+const posts = await getCollection('blog');
 
 // 合并默认配置和用户配置
 const config = {
@@ -23,24 +27,43 @@ function getAvatarUrl() {
   return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
 }
 
+// 计算文章总数
+const totalPosts = posts.length;
+
+// 获取所有分类并计数
+const categories = [...new Set(posts.map(post => post.data.category))]
+  .filter(Boolean) // 过滤掉 undefined 和 null
+  .map(category => ({
+    name: category,
+    count: posts.filter(post => post.data.category === category).length
+  }))
+  .sort((a, b) => b.count - a.count);
+
+// 获取所有标签并计数
+const allTags = posts.flatMap(post => post.data.tags || []);
+const totalTags = [...new Set(allTags)].length;
+
+// 计算总字数（假设每个文章的 description 和 title 包含主要内容）
+const totalWords = posts.reduce((acc, post) => {
+  const content = `${post.data.title} ${post.data.description}`;
+  // 将内容按空格分割并计数，对于中文字符则直接计算长度
+  const words = content.match(/[\u4e00-\u9fa5]|[a-zA-Z]+/g) || [];
+  return acc + words.length;
+}, 0);
+
+// 转换为万字单位
+const totalWordsInTenThousand = (totalWords / 10000).toFixed(1);
+
 const AVATAR_URL = getAvatarUrl();
 const AUTHOR_NAME = config.author.name;
 const AUTHOR_BIO = config.author.bio;
 
+// 更新统计数据
 const stats = [
-  { label: "文章", value: "106" },
-  { label: "分类", value: "6" },
-  { label: "标签", value: "192" },
-  { label: "万字", value: "30.9" }
-];
-
-const categories = [
-  { name: "笔记本", count: 34 },
-  { name: "技术向", count: 37 },
-  { name: "创作集", count: 9 },
-  { name: "日常话", count: 11 },
-  { name: "分享栏", count: 4 },
-  { name: "盘定果", count: 10 }
+  { label: "文章", value: totalPosts.toString() },
+  { label: "分类", value: categories.length.toString() },
+  { label: "标签", value: totalTags.toString() },
+  { label: "万字", value: totalWordsInTenThousand }
 ];
 
 // 检查是否在圣诞节期间 (12月)
@@ -70,7 +93,7 @@ const isChristmasSeason = new Date().getMonth() === 11;
     )}
   </div>
 
-  {config.sidebar?.categories && (
+  {config.sidebar?.categories && categories.length > 0 && (
     <div class="categories-box">
       <h3 class="box-title">分类</h3>
       {categories.map(category => (
