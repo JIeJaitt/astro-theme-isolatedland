@@ -60,7 +60,14 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 		display: grid;
 		grid-template-columns: 240px minmax(0, 1fr) 300px;
 		gap: 20px;
-		min-height: calc(100vh - 200px); /* 减去header和footer的高度 */
+		align-items: start;
+		min-height: calc(100vh - 200px);
+	}
+
+	.left-sidebar,
+	.right-sidebar,
+	.main-content {
+		margin-top: 0;
 	}
 
 	.left-sidebar {
@@ -70,7 +77,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 	}
 
 	.main-content {
-		min-width: 0; /* 防止内容溢出 */
+		min-width: 0;
 		width: 100%;
 	}
 
@@ -87,7 +94,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 
 		.left-sidebar,
 		.right-sidebar {
-			display: none; /* 在移动端隐藏侧边栏 */
+			display: none;
 		}
 	}
 </style> 
