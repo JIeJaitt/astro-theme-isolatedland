@@ -1,10 +1,10 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
-import LeftSidebar from '../components/sidebar/LeftSidebar.astro';
-import RightSidebar from '../components/sidebar/RightSidebar.astro';
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import LeftSidebar from "../components/sidebar/LeftSidebar.astro";
+import RightSidebar from "../components/sidebar/RightSidebar.astro";
 
 interface Props {
 	title?: string;
@@ -26,11 +26,11 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 				<aside class="left-sidebar">
 					<LeftSidebar />
 				</aside>
-				
+
 				<main class="main-content">
 					<slot />
 				</main>
-				
+
 				<aside class="right-sidebar">
 					<RightSidebar />
 				</aside>
@@ -44,7 +44,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 	body {
 		margin: 0;
 		padding: 0;
-		background-color: #f5f5f5;
+		background-color: #f2f5f8;
 		min-height: 100vh;
 	}
 
@@ -70,7 +70,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 		margin-top: 0;
 		background: white;
 		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 	}
 
 	.left-sidebar {
@@ -102,4 +102,5 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 			display: none;
 		}
 	}
-</style> 
+</style>
+

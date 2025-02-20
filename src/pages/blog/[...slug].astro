@@ -1,35 +1,39 @@
 ---
-import { type CollectionEntry, getCollection } from 'astro:content';
-import ThreeColumnLayout from '../../layouts/ThreeColumnLayout.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
+import { type CollectionEntry, getCollection } from "astro:content";
+import ThreeColumnLayout from "../../layouts/ThreeColumnLayout.astro";
+import FormattedDate from "../../components/FormattedDate.astro";
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog');
+	const posts = await getCollection("blog");
 	return posts.map((post) => ({
 		params: { slug: post.id },
 		props: post,
 	}));
 }
 
-type Props = CollectionEntry<'blog'>;
+type Props = CollectionEntry<"blog">;
 const post = Astro.props;
 const { Content } = await post.render();
 ---
 
 <ThreeColumnLayout title={post.data.title} description={post.data.description}>
 	<article class="blog-post">
-		{post.data.heroImage && (
-			<div class="hero-image">
-				<img src={post.data.heroImage} alt="" />
-			</div>
-		)}
+		{
+			post.data.heroImage && (
+				<div class="hero-image">
+					<img src={post.data.heroImage} alt="" />
+				</div>
+			)
+		}
 		<div class="post-header">
 			<h1>{post.data.title}</h1>
 			<div class="post-meta">
 				<FormattedDate date={post.data.pubDate} />
-				{post.data.category && (
-					<span class="post-category">{post.data.category}</span>
-				)}
+				{
+					post.data.category && (
+						<span class="post-category">{post.data.category}</span>
+					)
+				}
 			</div>
 		</div>
 		<div class="post-content">
@@ -43,7 +47,7 @@ const { Content } = await post.render();
 		background: white;
 		border-radius: 8px;
 		overflow: hidden;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	}
 
 	.hero-image img {
