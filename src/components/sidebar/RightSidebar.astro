@@ -1,0 +1,118 @@
+---
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const recentPosts = allPosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 5);
+
+const archives = [
+  { year: "2025", count: 1 },
+  { year: "2024", count: 5 },
+  { year: "2023", count: 3 },
+  { year: "2022", count: 5 },
+  { year: "2021", count: 3 },
+  { year: "2020", count: 38 },
+  { year: "2019", count: 28 },
+  { year: "2018", count: 21 }
+];
+---
+
+<aside class="right-sidebar">
+  <section class="widget">
+    <h3>最近文章</h3>
+    <ul class="recent-posts">
+      {recentPosts.map(post => (
+        <li>
+          <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+          <span class="post-date">
+            {new Date(post.data.pubDate).toLocaleDateString()}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="widget">
+    <h3>归档</h3>
+    <ul class="archives">
+      {archives.map(archive => (
+        <li>
+          <a href={`/archive/${archive.year}`}>
+            {archive.year}
+            <span class="archive-count">{archive.count}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</aside>
+
+<style>
+  .right-sidebar {
+    position: sticky;
+    top: 20px;
+  }
+
+  .widget {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .widget h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    color: #333;
+  }
+
+  .recent-posts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .recent-posts li {
+    margin-bottom: 12px;
+  }
+
+  .recent-posts a {
+    color: #333;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .recent-posts a:hover {
+    color: var(--accent);
+  }
+
+  .post-date {
+    font-size: 0.8rem;
+    color: #999;
+  }
+
+  .archives {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .archives li {
+    margin-bottom: 8px;
+  }
+
+  .archives a {
+    color: #333;
+    text-decoration: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .archive-count {
+    color: #999;
+    font-size: 0.9rem;
+  }
+</style> 

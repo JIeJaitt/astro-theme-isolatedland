@@ -1,0 +1,17 @@
+---
+const today = new Date();
+const month = today.toLocaleString('default', { month: 'long' });
+const year = today.getFullYear();
+---
+<div class="calendar">
+	<h3>{month} {year}</h3>
+	<p>今天日期：{today.toLocaleDateString()}</p>
+</div>
+<style>
+	.calendar {
+		border: 1px solid #ccc;
+		padding: 1em;
+		margin-top: 1em;
+		text-align: center;
+	}
+</style> 

@@ -1,0 +1,20 @@
+---
+const categories = Astro.props.categories || ["分类1", "分类2", "分类3"];
+---
+<div class="categories">
+	<h3>文章分类</h3>
+	<ul>
+		{categories.map(category => (
+			<li>{category}</li>
+		))}
+	</ul>
+</div>
+<style>
+	.categories ul {
+		list-style: none;
+		padding: 0;
+	}
+	.categories li {
+		margin-bottom: 0.5em;
+	}
+</style> 

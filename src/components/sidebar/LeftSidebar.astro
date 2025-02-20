@@ -1,0 +1,224 @@
+---
+const AVATAR_URL = "/avatar.jpg";
+const AUTHOR_NAME = "Sukka";
+const AUTHOR_BIO = "愿话凡是在真实却从不轻易";
+
+const stats = [
+  { label: "文章", value: "106" },
+  { label: "分类", value: "6" },
+  { label: "标签", value: "192" },
+  { label: "万字", value: "30.9" }
+];
+
+const categories = [
+  { name: "笔记本", count: 34 },
+  { name: "技术向", count: 37 },
+  { name: "创作集", count: 9 },
+  { name: "日常话", count: 11 },
+  { name: "分享栏", count: 4 },
+  { name: "盘定果", count: 10 }
+];
+
+// 检查是否在圣诞节期间 (12月)
+const isChristmasSeason = new Date().getMonth() === 11;
+---
+
+<aside class="left-sidebar">
+  <div class="profile-box">
+    <div class="avatar-section">
+      <div class="avatar-wrapper">
+        <img src={AVATAR_URL} alt={AUTHOR_NAME} class="avatar" />
+        {isChristmasSeason && <div class="christmas-hat"></div>}
+      </div>
+      <h2 class="author-name">{AUTHOR_NAME}</h2>
+      <p class="author-bio">{AUTHOR_BIO}</p>
+    </div>
+    
+    <div class="stats-section">
+      {stats.map(stat => (
+        <div class="stat-box">
+          <div class="stat-value">{stat.value}</div>
+          <div class="stat-label">{stat.label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="categories-box">
+    <h3 class="box-title">分类</h3>
+    {categories.map(category => (
+      <a href={`/category/${category.name}`} class="category-item">
+        <span class="category-name">{category.name}</span>
+        <span class="category-count">{category.count}</span>
+      </a>
+    ))}
+  </div>
+</aside>
+
+<style>
+  .left-sidebar {
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .profile-box {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .avatar-section {
+    padding: 24px;
+    text-align: center;
+    background: linear-gradient(to bottom, #f8f9fa, white);
+    border-bottom: 1px solid #eee;
+  }
+
+  .avatar-wrapper {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 16px;
+  }
+
+  .avatar {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 4px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    object-fit: cover;
+  }
+
+  .christmas-hat {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%) rotate(5deg);
+    width: 90px;
+    height: 60px;
+    background: linear-gradient(135deg, #e91e63 0%, #d81b60 100%);
+    clip-path: polygon(0 80%, 50% 0, 100% 80%);
+  }
+
+  .christmas-hat::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: -5px;
+    right: -5px;
+    height: 20px;
+    background: white;
+    border-radius: 50px;
+  }
+
+  .christmas-hat::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .author-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+  }
+
+  .author-bio {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 8px 0 0;
+    line-height: 1.5;
+  }
+
+  .stats-section {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .stat-box {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+  }
+
+  .stat-box:hover {
+    background-color: #f8f9fa;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  .categories-box {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .box-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+  }
+
+  .category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    color: #666;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .category-item:hover {
+    background-color: #f8f9fa;
+    color: var(--accent);
+  }
+
+  .category-name {
+    font-size: 0.95rem;
+  }
+
+  .category-count {
+    font-size: 0.85rem;
+    color: #999;
+    background: #f8f9fa;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .stats-section {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style> 

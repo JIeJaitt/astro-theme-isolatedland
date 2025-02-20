@@ -1,0 +1,93 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import LeftSidebar from '../components/sidebar/LeftSidebar.astro';
+import RightSidebar from '../components/sidebar/RightSidebar.astro';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={title} description={description} />
+	</head>
+	<body>
+		<Header />
+		<div class="layout-container">
+			<div class="layout-content">
+				<aside class="left-sidebar">
+					<LeftSidebar />
+				</aside>
+				
+				<main class="main-content">
+					<slot />
+				</main>
+				
+				<aside class="right-sidebar">
+					<RightSidebar />
+				</aside>
+			</div>
+		</div>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	body {
+		margin: 0;
+		padding: 0;
+		background-color: #f5f5f5;
+		min-height: 100vh;
+	}
+
+	.layout-container {
+		width: 100%;
+		max-width: 1400px;
+		margin: 0 auto;
+		padding: 20px;
+		box-sizing: border-box;
+	}
+
+	.layout-content {
+		display: grid;
+		grid-template-columns: 240px minmax(0, 1fr) 300px;
+		gap: 20px;
+		min-height: calc(100vh - 200px); /* 减去header和footer的高度 */
+	}
+
+	.left-sidebar {
+		position: sticky;
+		top: 20px;
+		height: fit-content;
+	}
+
+	.main-content {
+		min-width: 0; /* 防止内容溢出 */
+		width: 100%;
+	}
+
+	.right-sidebar {
+		position: sticky;
+		top: 20px;
+		height: fit-content;
+	}
+
+	@media (max-width: 1200px) {
+		.layout-content {
+			grid-template-columns: 1fr;
+		}
+
+		.left-sidebar,
+		.right-sidebar {
+			display: none; /* 在移动端隐藏侧边栏 */
+		}
+	}
+</style> 

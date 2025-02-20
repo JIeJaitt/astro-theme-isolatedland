@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content';
-import BlogPost from '../../layouts/BlogPost.astro';
-import { render } from 'astro:content';
+import ThreeColumnLayout from '../../layouts/ThreeColumnLayout.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
@@ -10,12 +10,91 @@ export async function getStaticPaths() {
 		props: post,
 	}));
 }
-type Props = CollectionEntry<'blog'>;
 
+type Props = CollectionEntry<'blog'>;
 const post = Astro.props;
-const { Content } = await render(post);
+const { Content } = await post.render();
 ---
 
-<BlogPost {...post.data}>
-	<Content />
-</BlogPost>
+<ThreeColumnLayout title={post.data.title} description={post.data.description}>
+	<article class="blog-post">
+		{post.data.heroImage && (
+			<div class="hero-image">
+				<img src={post.data.heroImage} alt="" />
+			</div>
+		)}
+		<div class="post-header">
+			<h1>{post.data.title}</h1>
+			<div class="post-meta">
+				<FormattedDate date={post.data.pubDate} />
+				{post.data.category && (
+					<span class="post-category">{post.data.category}</span>
+				)}
+			</div>
+		</div>
+		<div class="post-content">
+			<Content />
+		</div>
+	</article>
+</ThreeColumnLayout>
+
+<style>
+	.blog-post {
+		background: white;
+		border-radius: 8px;
+		overflow: hidden;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	}
+
+	.hero-image img {
+		width: 100%;
+		max-height: 400px;
+		object-fit: cover;
+	}
+
+	.post-header {
+		padding: 2rem 2rem 0;
+	}
+
+	.post-content {
+		padding: 2rem;
+	}
+
+	h1 {
+		margin: 0 0 1rem 0;
+		font-size: 2rem;
+		line-height: 1.3;
+	}
+
+	.post-meta {
+		display: flex;
+		gap: 1rem;
+		color: #666;
+		font-size: 0.9rem;
+		margin-bottom: 2rem;
+	}
+
+	.post-category {
+		background: #f0f0f0;
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+	}
+
+	:global(.post-content) {
+		line-height: 1.7;
+		font-size: 1.1rem;
+	}
+
+	:global(.post-content h2) {
+		margin-top: 2rem;
+	}
+
+	:global(.post-content p) {
+		margin: 1.5rem 0;
+	}
+
+	:global(.post-content img) {
+		max-width: 100%;
+		border-radius: 8px;
+	}
+</style>

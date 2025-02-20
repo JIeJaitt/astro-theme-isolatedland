@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog');
+// 按发布时间倒序排序
+posts.sort((a, b) => new Date(b.data.pubDate) - new Date(a.data.pubDate));
+const latestPosts = posts.slice(0, 5);
+---
+<div class="latest-posts">
+	<h3>最新文章</h3>
+	<ul>
+		{latestPosts.map(post => (
+			<li>
+				<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+			</li>
+		))}
+	</ul>
+</div>
+<style>
+	.latest-posts {
+		margin-bottom: 1em;
+	}
+	.latest-posts ul {
+		list-style: none;
+		padding: 0;
+	}
+	.latest-posts li {
+		margin-bottom: 0.5em;
+	}
+</style> 

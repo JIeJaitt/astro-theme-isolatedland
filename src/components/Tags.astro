@@ -1,0 +1,26 @@
+---
+const tags = Astro.props.tags || ["标签1", "标签2", "标签3"];
+---
+<div class="tags">
+	<h3>标签</h3>
+	<ul>
+		{tags.map(tag => (
+			<li>{tag}</li>
+		))}
+	</ul>
+</div>
+<style>
+	.tags ul {
+		list-style: none;
+		padding: 0;
+		display: flex;
+		gap: 0.5em;
+		flex-wrap: wrap;
+	}
+	.tags li {
+		background: #eaeaea;
+		padding: 0.3em 0.6em;
+		border-radius: 4px;
+		font-size: 0.9em;
+	}
+</style> 

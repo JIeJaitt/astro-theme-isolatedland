@@ -1,0 +1,52 @@
+---
+// 这里可以从数据库或其他数据源获取待办事项
+const todos = [
+  { id: 1, text: "写博客", completed: false },
+  { id: 2, text: "学习 Astro", completed: true },
+  { id: 3, text: "更新简历", completed: false },
+];
+---
+
+<div class="todo-list">
+  <h3>待办事项</h3>
+  <ul>
+    {todos.map(todo => (
+      <li class={todo.completed ? 'completed' : ''}>
+        <label>
+          <input type="checkbox" checked={todo.completed} />
+          <span>{todo.text}</span>
+        </label>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .todo-list {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  li {
+    margin-bottom: 0.5rem;
+  }
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .completed span {
+    text-decoration: line-through;
+    color: #999;
+  }
+</style> 

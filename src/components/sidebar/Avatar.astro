@@ -1,0 +1,36 @@
+---
+const AVATAR_URL = "/avatar.jpg"; // 把你的头像放在 public 目录下
+const AUTHOR_NAME = "Your Name";
+const BIO = "Your bio description here";
+---
+
+<div class="avatar-card">
+  <img src={AVATAR_URL} alt={AUTHOR_NAME} class="avatar" />
+  <h2>{AUTHOR_NAME}</h2>
+  <p>{BIO}</p>
+</div>
+
+<style>
+  .avatar-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+  }
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+  p {
+    margin: 0.5rem 0 0;
+    font-size: 0.9rem;
+    color: #666;
+  }
+</style> 

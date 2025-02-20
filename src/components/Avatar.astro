@@ -1,0 +1,20 @@
+---
+const { name = "Your Name", image = "/path/to/avatar.jpg", bio = "这里是你的简介" } = Astro.props;
+---
+<div class="avatar">
+	<img src={image} alt="Avatar" />
+	<h2>{name}</h2>
+	<p>{bio}</p>
+</div>
+<style>
+	.avatar {
+		text-align: center;
+		margin-bottom: 1em;
+	}
+	.avatar img {
+		width: 100px;
+		height: 100px;
+		border-radius: 50%;
+		object-fit: cover;
+	}
+</style> 

@@ -1,0 +1,25 @@
+---
+const tasks = Astro.props.tasks || ["任务1", "任务2", "任务3"];
+---
+<div class="todo">
+	<h3>待办事项</h3>
+	<ul>
+		{tasks.map(task => (
+			<li>{task}</li>
+		))}
+	</ul>
+</div>
+<style>
+	.todo {
+		border: 1px solid #ccc;
+		padding: 1em;
+		margin-top: 1em;
+	}
+	.todo ul {
+		list-style: none;
+		padding: 0;
+	}
+	.todo li {
+		margin-bottom: 0.5em;
+	}
+</style> 
