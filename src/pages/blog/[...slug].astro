@@ -1,5 +1,5 @@
 ---
-import { type CollectionEntry, getCollection } from "astro:content";
+import { type CollectionEntry, getCollection, render } from "astro:content";
 import ThreeColumnLayout from "../../layouts/ThreeColumnLayout.astro";
 import FormattedDate from "../../components/FormattedDate.astro";
 
@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 
 type Props = CollectionEntry<"blog">;
 const post = Astro.props;
-const { Content } = await post.render();
+const { Content } = await render(post);
 ---
 
 <ThreeColumnLayout title={post.data.title} description={post.data.description}>
