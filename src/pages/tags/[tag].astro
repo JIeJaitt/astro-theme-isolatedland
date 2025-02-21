@@ -1,0 +1,115 @@
+---
+import { getCollection } from "astro:content";
+import ThreeColumnLayout from "../../layouts/ThreeColumnLayout.astro";
+import FormattedDate from "../../components/FormattedDate.astro";
+
+export async function getStaticPaths() {
+    const posts = await getCollection("blog");
+
+    // 获取所有唯一的标签
+    const tags = [...new Set(posts.flatMap((post) => post.data.tags || []))];
+
+    return tags.map((tag) => ({
+        params: { tag },
+        props: {
+            posts: posts.filter((post) => post.data.tags?.includes(tag)),
+        },
+    }));
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+
+// 按日期排序
+const sortedPosts = posts.sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<ThreeColumnLayout
+    title={`标签: ${tag}`}
+    description={`查看标签 "${tag}" 下的所有文章`}
+>
+    <div class="tag-posts-container">
+        <h1>标签: {tag}</h1>
+        <p class="post-count">{posts.length} 篇文章</p>
+
+        <div class="posts-list">
+            {
+                sortedPosts.map((post) => (
+                    <article class="post-item">
+                        <FormattedDate date={post.data.pubDate} />
+                        <h2 class="post-title">
+                            <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+                        </h2>
+                        {post.data.description && (
+                            <p class="post-excerpt">{post.data.description}</p>
+                        )}
+                    </article>
+                ))
+            }
+        </div>
+    </div>
+</ThreeColumnLayout>
+
+<style>
+    .tag-posts-container {
+        padding: 2rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+        color: #333;
+    }
+
+    .post-count {
+        color: #666;
+        margin-bottom: 2rem;
+    }
+
+    .posts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .post-item {
+        padding: 1rem;
+        border-radius: 8px;
+        transition: background-color 0.2s;
+    }
+
+    .post-item:hover {
+        background-color: #f5f5f5;
+    }
+
+    .post-title {
+        margin: 0.5rem 0;
+    }
+
+    .post-title a {
+        color: #333;
+        text-decoration: none;
+    }
+
+    .post-title a:hover {
+        color: var(--accent);
+    }
+
+    .post-excerpt {
+        color: #666;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .tag-posts-container {
+            padding: 1rem;
+        }
+    }
+</style>
+
