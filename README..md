@@ -6,7 +6,7 @@ A minimal and elegant blog theme built with Astro.
 
 ## 🖥️ Preview
 
-[High-quality theme preview image needed]
+[![](docs/33c8312a6be740eda7ab7eabea55f2ed.png)](https://isolatedland.vercel.app/)
 
 ## ✨ Features
 
