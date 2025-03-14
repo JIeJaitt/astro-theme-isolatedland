@@ -7,46 +7,157 @@ const todos = [
 ];
 ---
 
-<div class="todo-list">
-  <h3>待办事项</h3>
-  <ul>
-    {todos.map(todo => (
-      <li class={todo.completed ? 'completed' : ''}>
-        <label>
-          <input type="checkbox" checked={todo.completed} />
-          <span>{todo.text}</span>
-        </label>
-      </li>
-    ))}
-  </ul>
+<div class="todo-widget">
+  <h3>待办清单</h3>
+  <div class="todo-input">
+    <input type="text" id="newTodo" placeholder="添加新任务..." />
+    <button id="addTodo">添加</button>
+  </div>
+  <ul id="todoList"></ul>
 </div>
 
+<script>
+  class TodoList {
+    private input: HTMLInputElement;
+    private list: HTMLUListElement;
+    private todos: { id: number; text: string; completed: boolean }[];
+
+    constructor() {
+      this.input = document.querySelector("#newTodo") as HTMLInputElement;
+      this.list = document.querySelector("#todoList") as HTMLUListElement;
+      this.todos = JSON.parse(localStorage.getItem("todos") || "[]");
+
+      this.initialize();
+    }
+
+    private initialize() {
+      this.renderTodos();
+
+      document
+        .querySelector("#addTodo")
+        ?.addEventListener("click", () => this.addTodo());
+      this.input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") this.addTodo();
+      });
+    }
+
+    private addTodo() {
+      const text = this.input.value.trim();
+      if (!text) return;
+
+      const todo = {
+        id: Date.now(),
+        text,
+        completed: false,
+      };
+
+      this.todos.push(todo);
+      this.saveTodos();
+      this.renderTodos();
+      this.input.value = "";
+    }
+
+    private toggleTodo(id: number) {
+      const todo = this.todos.find((t) => t.id === id);
+      if (todo) {
+        todo.completed = !todo.completed;
+        this.saveTodos();
+        this.renderTodos();
+      }
+    }
+
+    private deleteTodo(id: number) {
+      this.todos = this.todos.filter((t) => t.id !== id);
+      this.saveTodos();
+      this.renderTodos();
+    }
+
+    private saveTodos() {
+      localStorage.setItem("todos", JSON.stringify(this.todos));
+    }
+
+    private renderTodos() {
+      this.list.innerHTML = this.todos
+        .map(
+          (todo) => `
+          <li class="todo-item ${todo.completed ? "completed" : ""}">
+            <input type="checkbox" 
+                   ${todo.completed ? "checked" : ""} 
+                   onchange="todoList.toggleTodo(${todo.id})">
+            <span>${todo.text}</span>
+            <button onclick="todoList.deleteTodo(${todo.id})">×</button>
+          </li>
+        `,
+        )
+        .join("");
+    }
+  }
+
+  // 初始化待办清单
+  declare global {
+    interface Window {
+      todoList: TodoList;
+    }
+  }
+  window.todoList = new TodoList();
+</script>
+
 <style>
-  .todo-list {
+  .todo-widget {
     background: white;
-    padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin-bottom: 20px;
   }
-  h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
+
+  .todo-input {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
   }
-  ul {
+
+  .todo-input input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  .todo-input button {
+    padding: 8px 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  #todoList {
     list-style: none;
     padding: 0;
     margin: 0;
   }
-  li {
-    margin-bottom: 0.5rem;
-  }
-  label {
+
+  .todo-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
   }
-  .completed span {
+
+  .todo-item.completed span {
     text-decoration: line-through;
     color: #999;
   }
-</style> 
+
+  .todo-item button {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 1.2em;
+  }
+</style>
+

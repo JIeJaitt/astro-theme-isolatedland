@@ -1,1 +1,447 @@
- 
+---
+const today = new Date();
+const currentMonth = today.getMonth();
+const currentYear = today.getFullYear();
+
+function getDaysInMonth(year: number, month: number) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+function getFirstDayOfMonth(year: number, month: number) {
+    return new Date(year, month, 1).getDay();
+}
+
+const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+const firstDayOfMonth = getFirstDayOfMonth(currentYear, currentMonth);
+const monthNames = [
+    "一月",
+    "二月",
+    "三月",
+    "四月",
+    "五月",
+    "六月",
+    "七月",
+    "八月",
+    "九月",
+    "十月",
+    "十一月",
+    "十二月",
+];
+---
+
+<div class="calendar-widget">
+    <div class="calendar-header">
+        <h3>{monthNames[currentMonth]} {currentYear}</h3>
+    </div>
+    <div class="calendar-grid">
+        <div class="weekday">日</div>
+        <div class="weekday">一</div>
+        <div class="weekday">二</div>
+        <div class="weekday">三</div>
+        <div class="weekday">四</div>
+        <div class="weekday">五</div>
+        <div class="weekday">六</div>
+        {
+            Array(firstDayOfMonth)
+                .fill(null)
+                .map(() => <div class="day empty" />)
+        }
+        {
+            Array(daysInMonth)
+                .fill(null)
+                .map((_, i) => {
+                    const day = i + 1;
+                    const isToday =
+                        day === today.getDate() &&
+                        currentMonth === today.getMonth() &&
+                        currentYear === today.getFullYear();
+                    const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+                    return (
+                        <div
+                            class={`day ${isToday ? "today" : ""}`}
+                            data-date={dateStr}
+                        >
+                            {day}
+                        </div>
+                    );
+                })
+        }
+    </div>
+    <div class="todo-container" style="display: none;">
+        <div class="todo-header">
+            <h4 id="selected-date-title"></h4>
+            <button class="close-todo">×</button>
+        </div>
+        <div class="todo-input">
+            <input type="text" placeholder="添加新任务..." />
+            <button class="add-todo">添加</button>
+        </div>
+        <ul class="todo-list"></ul>
+    </div>
+</div>
+
+<script>
+    class CalendarTodo {
+        private days: NodeListOf<HTMLElement>;
+        private todoContainer: HTMLElement;
+        private todoHeader: HTMLElement;
+        private todoList: HTMLElement;
+        private todoInput: HTMLInputElement;
+        private addButton: HTMLElement;
+        private closeButton: HTMLElement;
+        private selectedDate: string = "";
+        private todos: {
+            [key: string]: { id: number; text: string; completed: boolean }[];
+        } = {};
+
+        constructor() {
+            this.days = document.querySelectorAll(".day:not(.empty)");
+            this.todoContainer = document.querySelector(
+                ".todo-container",
+            ) as HTMLElement;
+            this.todoHeader = document.querySelector(
+                "#selected-date-title",
+            ) as HTMLElement;
+            this.todoList = document.querySelector(".todo-list") as HTMLElement;
+            this.todoInput = document.querySelector(
+                ".todo-input input",
+            ) as HTMLInputElement;
+            this.addButton = document.querySelector(".add-todo") as HTMLElement;
+            this.closeButton = document.querySelector(
+                ".close-todo",
+            ) as HTMLElement;
+
+            this.loadTodos();
+            this.addEventListeners();
+            this.updateTodoIndicators();
+        }
+
+        private loadTodos() {
+            const savedTodos = localStorage.getItem("calendar-todos");
+            if (savedTodos) {
+                this.todos = JSON.parse(savedTodos);
+            }
+        }
+
+        private saveTodos() {
+            localStorage.setItem("calendar-todos", JSON.stringify(this.todos));
+            this.updateTodoIndicators();
+        }
+
+        private updateTodoIndicators() {
+            // 清除所有指示器
+            this.days.forEach((day) => {
+                day.classList.remove("has-todos");
+                day.classList.remove("has-completed-todos");
+                const indicator = day.querySelector(".todo-indicator");
+                if (indicator) {
+                    indicator.remove();
+                }
+            });
+
+            // 添加新指示器
+            this.days.forEach((day) => {
+                const dateStr = day.getAttribute("data-date") || "";
+                const dateTodos = this.todos[dateStr] || [];
+
+                if (dateTodos.length > 0) {
+                    const allCompleted = dateTodos.every(
+                        (todo) => todo.completed,
+                    );
+                    const someCompleted = dateTodos.some(
+                        (todo) => todo.completed,
+                    );
+
+                    if (allCompleted) {
+                        day.classList.add("has-completed-todos");
+                    } else if (someCompleted) {
+                        day.classList.add("has-partial-todos");
+                    } else {
+                        day.classList.add("has-todos");
+                    }
+
+                    const indicator = document.createElement("span");
+                    indicator.className = "todo-indicator";
+                    indicator.textContent = dateTodos.length.toString();
+                    day.appendChild(indicator);
+                }
+            });
+        }
+
+        private addEventListeners() {
+            // 点击日期显示待办事项
+            this.days.forEach((day) => {
+                day.addEventListener("click", () => {
+                    const dateStr = day.getAttribute("data-date") || "";
+                    this.showTodosForDate(dateStr);
+                });
+            });
+
+            // 添加新待办事项
+            this.addButton.addEventListener("click", () => this.addTodo());
+            this.todoInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") this.addTodo();
+            });
+
+            // 关闭待办事项面板
+            this.closeButton.addEventListener("click", () => {
+                this.todoContainer.style.display = "none";
+            });
+        }
+
+        private showTodosForDate(dateStr: string) {
+            this.selectedDate = dateStr;
+
+            // 格式化日期显示
+            const date = new Date(dateStr);
+            const formattedDate = date.toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                weekday: "long",
+            });
+
+            this.todoHeader.textContent = formattedDate;
+            this.renderTodos();
+            this.todoContainer.style.display = "block";
+            this.todoInput.focus();
+        }
+
+        private renderTodos() {
+            const dateTodos = this.todos[this.selectedDate] || [];
+
+            this.todoList.innerHTML = dateTodos
+                .map(
+                    (todo) => `
+                <li class="todo-item ${todo.completed ? "completed" : ""}">
+                    <input type="checkbox" ${todo.completed ? "checked" : ""} 
+                            onchange="calendarTodo.toggleTodo(${todo.id})">
+                    <span>${todo.text}</span>
+                    <button onclick="calendarTodo.deleteTodo(${todo.id})">×</button>
+                </li>
+            `,
+                )
+                .join("");
+        }
+
+        private addTodo() {
+            const text = this.todoInput.value.trim();
+            if (!text) return;
+
+            if (!this.todos[this.selectedDate]) {
+                this.todos[this.selectedDate] = [];
+            }
+
+            const newTodo = {
+                id: Date.now(),
+                text,
+                completed: false,
+            };
+
+            this.todos[this.selectedDate].push(newTodo);
+            this.saveTodos();
+            this.renderTodos();
+            this.todoInput.value = "";
+        }
+
+        public toggleTodo(id: number) {
+            const dateTodos = this.todos[this.selectedDate] || [];
+            const todo = dateTodos.find((t) => t.id === id);
+
+            if (todo) {
+                todo.completed = !todo.completed;
+                this.saveTodos();
+                this.renderTodos();
+            }
+        }
+
+        public deleteTodo(id: number) {
+            const dateTodos = this.todos[this.selectedDate] || [];
+            this.todos[this.selectedDate] = dateTodos.filter(
+                (t) => t.id !== id,
+            );
+
+            this.saveTodos();
+            this.renderTodos();
+        }
+    }
+
+    // 初始化日历待办事项功能
+    declare global {
+        interface Window {
+            calendarTodo: CalendarTodo;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        window.calendarTodo = new CalendarTodo();
+    });
+</script>
+
+<style>
+    .calendar-widget {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .calendar-header {
+        text-align: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .calendar-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 1.1rem;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+    }
+
+    .weekday {
+        text-align: center;
+        font-weight: bold;
+        color: #666;
+        padding: 5px 0;
+    }
+
+    .day {
+        text-align: center;
+        padding: 8px 0;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .day.empty {
+        background: transparent;
+        cursor: default;
+    }
+
+    .day.today {
+        background: var(--accent);
+        color: white;
+        font-weight: bold;
+    }
+
+    .day:not(.empty):hover {
+        background: #f5f5f5;
+    }
+
+    .day.has-todos {
+        border-bottom: 2px solid #4caf50;
+    }
+
+    .day.has-completed-todos {
+        border-bottom: 2px solid #9e9e9e;
+    }
+
+    .day.has-partial-todos {
+        border-bottom: 2px solid #ff9800;
+    }
+
+    .todo-indicator {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ff5722;
+        color: white;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .todo-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 10px;
+        padding: 15px;
+        z-index: 100;
+    }
+
+    .todo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .todo-header h4 {
+        margin: 0;
+        color: #333;
+    }
+
+    .close-todo {
+        background: none;
+        border: none;
+        font-size: 1.2em;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .todo-input {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .todo-input input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .todo-input button {
+        padding: 8px 16px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .todo-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .todo-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .todo-item.completed span {
+        text-decoration: line-through;
+        color: #999;
+    }
+
+    .todo-item button {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+    }
+</style>

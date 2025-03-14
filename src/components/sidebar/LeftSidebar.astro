@@ -1,9 +1,10 @@
 ---
-import { themeConfig, defaultThemeConfig } from '../../config/theme';
-import { getCollection } from 'astro:content';
+import { themeConfig, defaultThemeConfig } from "../../config/theme";
+import { getCollection } from "astro:content";
+import Calendar from "./Calendar.astro";
 
 // 获取所有博客文章
-const posts = await getCollection('blog');
+const posts = await getCollection("blog");
 
 // 合并默认配置和用户配置
 const config = {
@@ -11,8 +12,8 @@ const config = {
   ...themeConfig,
   author: {
     ...defaultThemeConfig.author,
-    ...themeConfig.author
-  }
+    ...themeConfig.author,
+  },
 };
 
 // 获取头像 URL
@@ -21,7 +22,7 @@ function getAvatarUrl() {
   if (config.author.avatar) {
     return config.author.avatar;
   }
-  
+
   // 否则使用 DiceBear 生成随机头像
   const seed = config.author.name; // 使用作者名字作为种子以保持一致性
   return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
@@ -31,16 +32,16 @@ function getAvatarUrl() {
 const totalPosts = posts.length;
 
 // 获取所有分类并计数
-const categories = [...new Set(posts.map(post => post.data.category))]
+const categories = [...new Set(posts.map((post) => post.data.category))]
   .filter(Boolean) // 过滤掉 undefined 和 null
-  .map(category => ({
+  .map((category) => ({
     name: category,
-    count: posts.filter(post => post.data.category === category).length
+    count: posts.filter((post) => post.data.category === category).length,
   }))
   .sort((a, b) => b.count - a.count);
 
 // 获取所有标签并计数
-const allTags = posts.flatMap(post => post.data.tags || []);
+const allTags = posts.flatMap((post) => post.data.tags || []);
 const totalTags = [...new Set(allTags)].length;
 
 // 计算总字数（假设每个文章的 description 和 title 包含主要内容）
@@ -63,7 +64,7 @@ const stats = [
   { label: "文章", value: totalPosts.toString() },
   { label: "分类", value: categories.length.toString() },
   { label: "标签", value: totalTags.toString() },
-  { label: "万字", value: totalWordsInTenThousand }
+  { label: "万字", value: totalWordsInTenThousand },
 ];
 
 // 检查是否在圣诞节期间 (12月)
@@ -75,35 +76,43 @@ const isChristmasSeason = new Date().getMonth() === 11;
     <div class="avatar-section">
       <div class="avatar-wrapper">
         <img src={AVATAR_URL} alt={AUTHOR_NAME} class="avatar" />
-        {isChristmasSeason && <div class="christmas-hat"></div>}
+        {isChristmasSeason && <div class="christmas-hat" />}
       </div>
       <h2 class="author-name">{AUTHOR_NAME}</h2>
       <p class="author-bio">{AUTHOR_BIO}</p>
     </div>
-    
-    {config.sidebar?.stats && (
-      <div class="stats-section">
-        {stats.map(stat => (
-          <div class="stat-box">
-            <div class="stat-value">{stat.value}</div>
-            <div class="stat-label">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-    )}
+
+    {
+      config.sidebar?.stats && (
+        <div class="stats-section">
+          {stats.map((stat) => (
+            <div class="stat-box">
+              <div class="stat-value">{stat.value}</div>
+              <div class="stat-label">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      )
+    }
   </div>
 
-  {config.sidebar?.categories && categories.length > 0 && (
-    <div class="categories-box">
-      <h3 class="box-title">分类</h3>
-      {categories.map(category => (
-        <a href={`/category/${category.name}`} class="category-item">
-          <span class="category-name">{category.name}</span>
-          <span class="category-count">{category.count}</span>
-        </a>
-      ))}
-    </div>
-  )}
+  <div class="calendar-box">
+    <Calendar />
+  </div>
+
+  {
+    config.sidebar?.categories && categories.length > 0 && (
+      <div class="categories-box">
+        <h3 class="box-title">分类</h3>
+        {categories.map((category) => (
+          <a href={`/category/${category.name}`} class="category-item">
+            <span class="category-name">{category.name}</span>
+            <span class="category-count">{category.count}</span>
+          </a>
+        ))}
+      </div>
+    )
+  }
 </aside>
 
 <style>
@@ -112,14 +121,16 @@ const isChristmasSeason = new Date().getMonth() === 11;
     top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 30px;
+    background: transparent;
+    box-shadow: none;
   }
 
   .profile-box {
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
   .avatar-section {
@@ -143,7 +154,7 @@ const isChristmasSeason = new Date().getMonth() === 11;
     background: #f5f5f5;
     padding: 4px;
     border: 2px solid #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .christmas-hat {
@@ -158,7 +169,7 @@ const isChristmasSeason = new Date().getMonth() === 11;
   }
 
   .christmas-hat::before {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -10px;
     left: -5px;
@@ -169,7 +180,7 @@ const isChristmasSeason = new Date().getMonth() === 11;
   }
 
   .christmas-hat::after {
-    content: '';
+    content: "";
     position: absolute;
     top: -8px;
     right: 0;
@@ -177,7 +188,7 @@ const isChristmasSeason = new Date().getMonth() === 11;
     height: 20px;
     background: white;
     border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .author-name {
@@ -228,7 +239,7 @@ const isChristmasSeason = new Date().getMonth() === 11;
     background: white;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
   .box-title {
@@ -273,4 +284,12 @@ const isChristmasSeason = new Date().getMonth() === 11;
       grid-template-columns: repeat(2, 1fr);
     }
   }
-</style> 
+
+  .calendar-box {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-top: 0;
+  }
+</style>

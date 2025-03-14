@@ -64,19 +64,20 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 		min-height: calc(100vh - 200px);
 	}
 
-	.left-sidebar,
+	.left-sidebar {
+		position: sticky;
+		top: 20px;
+		height: fit-content;
+		background: transparent;
+		box-shadow: none;
+	}
+
 	.right-sidebar,
 	.main-content {
 		margin-top: 0;
 		background: white;
 		border-radius: 8px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-	}
-
-	.left-sidebar {
-		position: sticky;
-		top: 20px;
-		height: fit-content;
 	}
 
 	.main-content {
@@ -103,4 +104,3 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 		}
 	}
 </style>
-

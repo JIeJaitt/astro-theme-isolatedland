@@ -1,18 +1,19 @@
 ---
 import { getCollection } from "astro:content";
+import Calendar from "./Calendar.astro";
 
 const allPosts = await getCollection("blog");
 
 // 计算每年的文章数量
-const archiveCounts = allPosts.reduce((acc, post) => {
+const postsByYear = allPosts.reduce((acc: { [key: string]: number }, post) => {
   const year = post.data.pubDate.getFullYear().toString();
   acc[year] = (acc[year] || 0) + 1;
   return acc;
 }, {});
 
 // 转换为数组并排序
-const archives = Object.entries(archiveCounts)
-  .map(([year, count]) => ({ year, count }))
+const archives = Object.entries(postsByYear)
+  .map(([year, count]) => ({ year: parseInt(year), count }))
   .sort((a, b) => b.year - a.year);
 
 const recentPosts = allPosts
@@ -58,6 +59,9 @@ const recentPosts = allPosts
   .right-sidebar {
     position: sticky;
     top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 增加组件之间的间距 */
   }
 
   .widget {
