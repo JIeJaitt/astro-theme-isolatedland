@@ -25,7 +25,7 @@ export const defaultThemeConfig: ThemeConfig = {
 // 用户配置 (可以被 astro.config.mjs 覆盖)
 export const themeConfig: ThemeConfig = {
     author: {
-        name: "博客昵称",
+        name: "JIeJaitt",
         bio: "愿话凡是在真实却从不轻易",
         // avatar: "/custom-avatar.jpg"  // 可选的自定义头像
     },

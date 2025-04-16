@@ -11,8 +11,31 @@ function getFirstDayOfMonth(year: number, month: number) {
     return new Date(year, month, 1).getDay();
 }
 
+// 获取上个月的天数
+function getPrevMonthDays(year: number, month: number) {
+    const prevMonth = month === 0 ? 11 : month - 1;
+    const prevYear = month === 0 ? year - 1 : year;
+    return getDaysInMonth(prevYear, prevMonth);
+}
+
+// 获取下个月信息
+function getNextMonthInfo(year: number, month: number) {
+    const nextMonth = month === 11 ? 0 : month + 1;
+    const nextYear = month === 11 ? year + 1 : year;
+    return { month: nextMonth, year: nextYear };
+}
+
 const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+const prevMonthDays = getPrevMonthDays(currentYear, currentMonth);
 const firstDayOfMonth = getFirstDayOfMonth(currentYear, currentMonth);
+const lastDay = (firstDayOfMonth + daysInMonth) % 7;
+const nextDays = lastDay > 0 ? 7 - lastDay : 0;
+
+const { month: nextMonth, year: nextYear } = getNextMonthInfo(
+    currentYear,
+    currentMonth,
+);
+
 const monthNames = [
     "一月",
     "二月",
@@ -27,25 +50,67 @@ const monthNames = [
     "十一月",
     "十二月",
 ];
+
+const weekdayNames = ["日", "一", "二", "三", "四", "五", "六"];
 ---
 
 <div class="calendar-widget">
     <div class="calendar-header">
-        <h3>{monthNames[currentMonth]} {currentYear}</h3>
+        <div class="month-navigation">
+            <button class="nav-btn prev-month">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <h3 class="current-month">
+                {monthNames[currentMonth]}
+                {currentYear}
+            </h3>
+            <button class="nav-btn next-month">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
     </div>
-    <div class="calendar-grid">
-        <div class="weekday">日</div>
-        <div class="weekday">一</div>
-        <div class="weekday">二</div>
-        <div class="weekday">三</div>
-        <div class="weekday">四</div>
-        <div class="weekday">五</div>
-        <div class="weekday">六</div>
+
+    <div class="calendar-weekdays">
+        {weekdayNames.map((day) => <div class="weekday">{day}</div>)}
+    </div>
+
+    <div class="calendar-days">
+        {/* 上个月的日期 */}
         {
             Array(firstDayOfMonth)
                 .fill(null)
-                .map(() => <div class="day empty" />)
+                .map((_, i) => (
+                    <div class="day prev-month-day">
+                        {prevMonthDays - firstDayOfMonth + i + 1}
+                    </div>
+                ))
         }
+
+        {/* 本月的日期 */}
         {
             Array(daysInMonth)
                 .fill(null)
@@ -56,64 +121,120 @@ const monthNames = [
                         currentMonth === today.getMonth() &&
                         currentYear === today.getFullYear();
                     const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+
                     return (
                         <div
                             class={`day ${isToday ? "today" : ""}`}
                             data-date={dateStr}
                         >
-                            {day}
+                            <span class="day-number">{day}</span>
                         </div>
                     );
                 })
         }
+
+        {/* 下个月的日期 */}
+        {
+            Array(nextDays)
+                .fill(null)
+                .map((_, i) => <div class="day next-month-day">{i + 1}</div>)
+        }
     </div>
-    <div class="todo-container" style="display: none;">
+
+    <div class="todo-section">
         <div class="todo-header">
-            <h4 id="selected-date-title"></h4>
-            <button class="close-todo">×</button>
+            <h4 class="selected-date"></h4>
         </div>
-        <div class="todo-input">
-            <input type="text" placeholder="添加新任务..." />
-            <button class="add-todo">添加</button>
+
+        <div class="todo-input-container">
+            <input type="text" class="todo-input" placeholder="添加新任务..." />
+            <button class="add-todo-btn">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
         </div>
+
         <ul class="todo-list"></ul>
     </div>
 </div>
 
 <script>
-    class CalendarTodo {
-        private days: NodeListOf<HTMLElement>;
-        private todoContainer: HTMLElement;
-        private todoHeader: HTMLElement;
+    class CalendarApp {
+        private currentDate: Date;
+        private selectedDate: string | null = null;
+        private calendarContainer: HTMLElement;
+        private prevMonthBtn: HTMLElement;
+        private nextMonthBtn: HTMLElement;
+        private monthYearDisplay: HTMLElement;
+        private daysContainer: HTMLElement;
+        private todoSection: HTMLElement;
         private todoList: HTMLElement;
         private todoInput: HTMLInputElement;
-        private addButton: HTMLElement;
-        private closeButton: HTMLElement;
-        private selectedDate: string = "";
+        private addTodoBtn: HTMLElement;
+        private selectedDateDisplay: HTMLElement;
+        private days: NodeListOf<HTMLElement>;
         private todos: {
             [key: string]: { id: number; text: string; completed: boolean }[];
         } = {};
 
         constructor() {
-            this.days = document.querySelectorAll(".day:not(.empty)");
-            this.todoContainer = document.querySelector(
-                ".todo-container",
-            ) as HTMLElement;
-            this.todoHeader = document.querySelector(
-                "#selected-date-title",
-            ) as HTMLElement;
-            this.todoList = document.querySelector(".todo-list") as HTMLElement;
-            this.todoInput = document.querySelector(
-                ".todo-input input",
-            ) as HTMLInputElement;
-            this.addButton = document.querySelector(".add-todo") as HTMLElement;
-            this.closeButton = document.querySelector(
-                ".close-todo",
-            ) as HTMLElement;
-
+            this.currentDate = new Date();
+            this.initElements();
             this.loadTodos();
+            this.renderCalendar();
             this.addEventListeners();
             this.updateTodoIndicators();
+
+            // 默认显示今天的待办事项
+            const todayStr = this.formatDate(new Date());
+            this.showTodos(todayStr);
+
+            // 为当前选中的日期添加选中样式
+            const todayElem = this.daysContainer.querySelector(
+                `[data-date="${todayStr}"]`,
+            );
+            if (todayElem) {
+                todayElem.classList.add("selected");
+            }
+        }
+
+        private initElements() {
+            this.calendarContainer =
+                document.querySelector(".calendar-widget")!;
+            this.prevMonthBtn = document.querySelector(".prev-month")!;
+            this.nextMonthBtn = document.querySelector(".next-month")!;
+            this.monthYearDisplay = document.querySelector(".current-month")!;
+            this.daysContainer = document.querySelector(".calendar-days")!;
+            this.todoSection = document.querySelector(".todo-section")!;
+            this.todoList = document.querySelector(".todo-list")!;
+            this.todoInput = document.querySelector(
+                ".todo-input",
+            ) as HTMLInputElement;
+            this.addTodoBtn = document.querySelector(".add-todo-btn")!;
+            this.selectedDateDisplay =
+                document.querySelector(".selected-date")!;
+            this.days = document.querySelectorAll(
+                ".day:not(.prev-month-day):not(.next-month-day)",
+            );
+        }
+
+        private formatDate(date: Date): string {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, "0");
+            const day = date.getDate().toString().padStart(2, "0");
+            return `${year}-${month}-${day}`;
         }
 
         private loadTodos() {
@@ -129,67 +250,117 @@ const monthNames = [
         }
 
         private updateTodoIndicators() {
-            // 清除所有指示器
+            // 清除所有日期的高亮状态
             this.days.forEach((day) => {
                 day.classList.remove("has-todos");
-                day.classList.remove("has-completed-todos");
-                const indicator = day.querySelector(".todo-indicator");
-                if (indicator) {
-                    indicator.remove();
-                }
             });
 
-            // 添加新指示器
-            this.days.forEach((day) => {
-                const dateStr = day.getAttribute("data-date") || "";
-                const dateTodos = this.todos[dateStr] || [];
-
-                if (dateTodos.length > 0) {
-                    const allCompleted = dateTodos.every(
-                        (todo) => todo.completed,
+            // 标记有待办事项的日期
+            for (const dateStr in this.todos) {
+                if (this.todos[dateStr].length > 0) {
+                    const dayElement = this.daysContainer.querySelector(
+                        `[data-date="${dateStr}"]`,
                     );
-                    const someCompleted = dateTodos.some(
-                        (todo) => todo.completed,
-                    );
-
-                    if (allCompleted) {
-                        day.classList.add("has-completed-todos");
-                    } else if (someCompleted) {
-                        day.classList.add("has-partial-todos");
-                    } else {
-                        day.classList.add("has-todos");
+                    if (dayElement) {
+                        dayElement.classList.add("has-todos");
                     }
-
-                    const indicator = document.createElement("span");
-                    indicator.className = "todo-indicator";
-                    indicator.textContent = dateTodos.length.toString();
-                    day.appendChild(indicator);
                 }
-            });
+            }
+        }
+
+        private renderCalendar() {
+            const year = this.currentDate.getFullYear();
+            const month = this.currentDate.getMonth();
+            const monthNames = [
+                "一月",
+                "二月",
+                "三月",
+                "四月",
+                "五月",
+                "六月",
+                "七月",
+                "八月",
+                "九月",
+                "十月",
+                "十一月",
+                "十二月",
+            ];
+
+            // 更新月份和年份显示
+            this.monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
+
+            this.updateTodoIndicators();
         }
 
         private addEventListeners() {
+            // 上一个月按钮
+            this.prevMonthBtn.addEventListener("click", () => {
+                this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+                this.renderCalendar();
+            });
+
+            // 下一个月按钮
+            this.nextMonthBtn.addEventListener("click", () => {
+                this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+                this.renderCalendar();
+            });
+
             // 点击日期显示待办事项
-            this.days.forEach((day) => {
-                day.addEventListener("click", () => {
-                    const dateStr = day.getAttribute("data-date") || "";
-                    this.showTodosForDate(dateStr);
-                });
+            this.daysContainer.addEventListener("click", (e) => {
+                const target = e.target as HTMLElement;
+                const day = target.closest(
+                    ".day:not(.prev-month-day):not(.next-month-day)",
+                ) as HTMLElement;
+
+                if (day) {
+                    this.days.forEach((d) => d.classList.remove("selected"));
+                    day.classList.add("selected");
+
+                    const dateStr = day.getAttribute("data-date");
+                    if (dateStr) {
+                        this.showTodos(dateStr);
+                    }
+                }
             });
 
-            // 添加新待办事项
-            this.addButton.addEventListener("click", () => this.addTodo());
+            // 添加待办事项
+            this.addTodoBtn.addEventListener("click", () => this.addTodo());
             this.todoInput.addEventListener("keypress", (e) => {
-                if (e.key === "Enter") this.addTodo();
+                if (e.key === "Enter") {
+                    this.addTodo();
+                }
             });
 
-            // 关闭待办事项面板
-            this.closeButton.addEventListener("click", () => {
-                this.todoContainer.style.display = "none";
+            // 待办事项列表的点击事件 - 确保可以点击多个部分
+            this.todoList.addEventListener("click", (e) => {
+                const target = e.target as HTMLElement;
+                const todoItem = target.closest(".todo-item") as HTMLElement;
+
+                if (!todoItem) return;
+
+                const todoId = parseInt(
+                    todoItem.getAttribute("data-id") || "0",
+                );
+
+                // 删除按钮点击
+                if (target.classList.contains("delete-btn")) {
+                    this.deleteTodo(todoId);
+                    return;
+                }
+
+                // 点击复选框或其内部元素
+                if (
+                    target.classList.contains("todo-checkbox") ||
+                    target.classList.contains("checkmark") ||
+                    target.closest(".todo-checkbox")
+                ) {
+                    this.toggleTodo(todoId);
+                    return;
+                }
             });
         }
 
-        private showTodosForDate(dateStr: string) {
+        private showTodos(dateStr: string) {
             this.selectedDate = dateStr;
 
             // 格式化日期显示
@@ -201,23 +372,37 @@ const monthNames = [
                 weekday: "long",
             });
 
-            this.todoHeader.textContent = formattedDate;
+            this.selectedDateDisplay.textContent = formattedDate;
             this.renderTodos();
-            this.todoContainer.style.display = "block";
+            this.todoSection.style.display = "block";
             this.todoInput.focus();
         }
 
         private renderTodos() {
+            if (!this.selectedDate) return;
+
             const dateTodos = this.todos[this.selectedDate] || [];
+
+            if (dateTodos.length === 0) {
+                this.todoList.innerHTML =
+                    '<li class="empty-todo">今天没有待办事项</li>';
+                return;
+            }
 
             this.todoList.innerHTML = dateTodos
                 .map(
                     (todo) => `
-                <li class="todo-item ${todo.completed ? "completed" : ""}">
-                    <input type="checkbox" ${todo.completed ? "checked" : ""} 
-                            onchange="calendarTodo.toggleTodo(${todo.id})">
-                    <span>${todo.text}</span>
-                    <button onclick="calendarTodo.deleteTodo(${todo.id})">×</button>
+                <li class="todo-item ${todo.completed ? "completed" : ""}" data-id="${todo.id}">
+                    <input type="checkbox" class="todo-checkbox" ${todo.completed ? "checked" : ""}>
+                    <span class="todo-text">${todo.completed ? `<del>${todo.text}</del>` : todo.text}</span>
+                    <button class="delete-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
                 </li>
             `,
                 )
@@ -225,6 +410,8 @@ const monthNames = [
         }
 
         private addTodo() {
+            if (!this.selectedDate) return;
+
             const text = this.todoInput.value.trim();
             if (!text) return;
 
@@ -244,7 +431,9 @@ const monthNames = [
             this.todoInput.value = "";
         }
 
-        public toggleTodo(id: number) {
+        private toggleTodo(id: number) {
+            if (!this.selectedDate) return;
+
             const dateTodos = this.todos[this.selectedDate] || [];
             const todo = dateTodos.find((t) => t.id === id);
 
@@ -255,7 +444,9 @@ const monthNames = [
             }
         }
 
-        public deleteTodo(id: number) {
+        private deleteTodo(id: number) {
+            if (!this.selectedDate) return;
+
             const dateTodos = this.todos[this.selectedDate] || [];
             this.todos[this.selectedDate] = dateTodos.filter(
                 (t) => t.id !== id,
@@ -266,182 +457,294 @@ const monthNames = [
         }
     }
 
-    // 初始化日历待办事项功能
-    declare global {
-        interface Window {
-            calendarTodo: CalendarTodo;
-        }
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
-        window.calendarTodo = new CalendarTodo();
+        new CalendarApp();
     });
 </script>
 
 <style>
+    /* 日历容器 */
     .calendar-widget {
         background: white;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        font-family:
+            system-ui,
+            -apple-system,
+            "Segoe UI",
+            Roboto,
+            sans-serif;
+        width: 100%;
+        box-sizing: border-box;
     }
 
+    /* 日历头部 */
     .calendar-header {
-        text-align: center;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #eee;
+        padding: 16px;
+        background: linear-gradient(90deg, #f8f9fa, #f1f3f5);
+        border-bottom: 1px solid #e9ecef;
     }
 
-    .calendar-header h3 {
+    .month-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .current-month {
         margin: 0;
-        color: #333;
         font-size: 1.1rem;
+        font-weight: 600;
+        color: #343a40;
     }
 
-    .calendar-grid {
+    .nav-btn {
+        background: white;
+        border: 1px solid #dee2e6;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+        background: #f1f3f5;
+        border-color: #ced4da;
+    }
+
+    .nav-btn svg {
+        color: #495057;
+    }
+
+    /* 星期栏 */
+    .calendar-weekdays {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
     }
 
     .weekday {
         text-align: center;
-        font-weight: bold;
-        color: #666;
-        padding: 5px 0;
+        padding: 12px 0;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #868e96;
+    }
+
+    /* 日历日期 */
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+        padding: 8px;
+        background: white;
     }
 
     .day {
-        text-align: center;
-        padding: 8px 0;
-        border-radius: 4px;
-        font-size: 0.9rem;
         position: relative;
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
         cursor: pointer;
+        transition: all 0.2s ease;
     }
 
-    .day.empty {
-        background: transparent;
-        cursor: default;
+    .day:hover {
+        background: #f1f3f5;
     }
 
-    .day.today {
-        background: var(--accent);
-        color: white;
-        font-weight: bold;
+    .day.selected {
+        background: #e7f5ff;
     }
 
-    .day:not(.empty):hover {
-        background: #f5f5f5;
-    }
-
-    .day.has-todos {
-        border-bottom: 2px solid #4caf50;
-    }
-
-    .day.has-completed-todos {
-        border-bottom: 2px solid #9e9e9e;
-    }
-
-    .day.has-partial-todos {
-        border-bottom: 2px solid #ff9800;
-    }
-
-    .todo-indicator {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: #ff5722;
+    .day.today .day-number {
+        background: var(--accent, #3b82f6);
         color: white;
         border-radius: 50%;
-        width: 16px;
-        height: 16px;
-        font-size: 10px;
+        width: 28px;
+        height: 28px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .todo-container {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        margin-top: 10px;
-        padding: 15px;
-        z-index: 100;
+    /* 有待办事项的日期显示光晕 */
+    .day.has-todos {
+        box-shadow: 0 0 0 4px rgba(173, 181, 189, 0.2);
+    }
+
+    .prev-month-day,
+    .next-month-day {
+        color: #adb5bd;
+        opacity: 0.5;
+    }
+
+    .day-number {
+        font-size: 0.9rem;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 待办事项部分 */
+    .todo-section {
+        padding: 16px;
+        border-top: 1px solid #e9ecef;
     }
 
     .todo-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #eee;
+        margin-bottom: 14px;
     }
 
-    .todo-header h4 {
+    .selected-date {
         margin: 0;
-        color: #333;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #343a40;
     }
 
-    .close-todo {
-        background: none;
-        border: none;
-        font-size: 1.2em;
-        cursor: pointer;
-        color: #999;
+    /* 待办输入组 - 修复宽度问题 */
+    .todo-input-container {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .todo-input {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 15px;
+        width: calc(100% - 38px); /* 计算宽度为容器宽度减去按钮宽度和间隙 */
+        height: 32px;
+        padding: 0 8px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s ease;
+        box-sizing: border-box;
     }
 
-    .todo-input input {
-        flex: 1;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+    .todo-input:focus {
+        border-color: var(--accent, #3b82f6);
     }
 
-    .todo-input button {
-        padding: 8px 16px;
-        background: var(--accent);
+    .add-todo-btn {
+        background: var(--accent, #3b82f6);
         color: white;
         border: none;
-        border-radius: 4px;
+        width: 32px;
+        height: 32px;
+        min-width: 32px; /* 确保按钮不会被挤压 */
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
+        transition: background 0.2s ease;
+        padding: 0;
     }
 
+    .add-todo-btn:hover {
+        background: #2563eb;
+    }
+
+    /* 待办列表 */
     .todo-list {
         list-style: none;
         padding: 0;
         margin: 0;
-        max-height: 300px;
+        max-height: 250px;
         overflow-y: auto;
     }
 
     .todo-item {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 0;
-        border-bottom: 1px solid #eee;
+        padding: 10px 5px;
+        border-bottom: 1px solid #f1f3f5;
+        width: 100%;
     }
 
-    .todo-item.completed span {
+    .empty-todo {
+        text-align: center;
+        color: #adb5bd;
+        padding: 16px;
+    }
+
+    /* 使用真实的HTML复选框 */
+    .todo-checkbox {
+        margin: 0 8px 0 0;
+        flex: 0 0 16px;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    /* 待办事项文本 */
+    .todo-text {
+        flex: 1;
+        font-size: 0.85rem;
+        color: #343a40;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding-right: 5px;
+    }
+
+    .todo-item.completed .todo-text del {
         text-decoration: line-through;
-        color: #999;
+        color: #adb5bd;
     }
 
-    .todo-item button {
-        margin-left: auto;
+    /* 删除按钮样式 - 进一步增强特异性 */
+    .todo-item .delete-btn {
         background: none;
         border: none;
-        color: #999;
         cursor: pointer;
+        padding: 0;
+        margin-left: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #adb5bd;
+        transition: color 0.2s;
+    }
+
+    .todo-item .delete-btn:hover {
+        color: #fa5252;
+    }
+
+    .todo-item .delete-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* 确保Flex布局正确应用 */
+    .todo-list li.todo-item {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 300px) {
+        .todo-text {
+            max-width: 100px;
+        }
+    }
+
+    /* 删除按钮悬停样式 - 提高选择器特异性 */
+    .todo-list .todo-item .delete-btn:hover {
+        color: #fa5252 !important;
     }
 </style>
