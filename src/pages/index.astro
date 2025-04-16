@@ -1,11 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
-import ThreeColumnLayout from '../layouts/ThreeColumnLayout.astro';
-import FormattedDate from '../components/FormattedDate.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { getCollection } from "astro:content";
+import ThreeColumnLayout from "../layouts/ThreeColumnLayout.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+const posts = (await getCollection("blog")).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
 
@@ -26,7 +26,9 @@ const posts = (await getCollection('blog')).sort(
 						<div class="post-meta">
 							<FormattedDate date={post.data.pubDate} />
 							{post.data.category && (
-								<span class="post-category">{post.data.category}</span>
+								<span class="post-category">
+									{post.data.category}
+								</span>
 							)}
 						</div>
 						<p class="post-excerpt">{post.data.description}</p>
@@ -41,14 +43,16 @@ const posts = (await getCollection('blog')).sort(
 	.blog-posts {
 		display: flex;
 		flex-direction: column;
-		gap: 2rem;
+		gap: 1.5rem;
+		padding: 1.5rem;
 	}
 
 	.post-card {
 		background: white;
 		border-radius: 8px;
 		overflow: hidden;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		margin-bottom: 0.5rem;
 	}
 
 	.post-image img {
